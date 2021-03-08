@@ -25,10 +25,10 @@ Nesse laboratórios, que está centralizado no arquivo [Vagrantfile][8], serão 
 
 Nome       | vCPUs | Memoria RAM | IP            | S.O.¹           | Script de Provisionamento²
 ---------- |:-----:|:-----------:|:-------------:|:---------------:| -----------------------------
-cicd       | 1     | 1536MB      | 192.168.88.10 | debian/buster64 | [provisionamento/testing.sh][9]
-cicd-tools | 1     | 3072MB      | 192.168.88.20 | debian/buster64 | [provisionamento/automation.sh][10]
-homolog    | 1     | 512MB       | 192.168.88.30 | debian/buster64 | [provisionamento/logging.sh][11]
-production | 1     | 512MB       | 192.168.88.40 | debian/buster64 | [provisionamento/validation.sh][12]
+cicd       | 1     | 1536MB      | 192.168.88.10 | debian/buster64 | 
+cicd-tools | 1     | 3072MB      | 192.168.88.20 | debian/buster64 | 
+homolog    | 1     | 512MB       | 192.168.88.30 | debian/buster64 | 
+production | 1     | 512MB       | 192.168.88.40 | debian/buster64 | 
 
 > **¹**: Esses Sistemas operacionais estão sendo utilizado no formato de Boxes, é a forma como o vagrant chama as imagens do sistema operacional utilizado.
 
@@ -75,9 +75,5 @@ Comandos                | Descrição
 [6]: https://cygwin.com/install.html
 [7]: https://www.vagrantup.com/
 [8]: ./Vagrantfile
-[9]: ./provisionamento/testing.sh
-[10]: ./provisionamento/automation.sh
-[11]: ./provisionamento/logging.sh
-[12]: ./provisionamento/validation.sh
 [13]: https://www.vagrantup.com/docs
 [14]: https://app.vagrantup.com/4linux
