@@ -15,7 +15,7 @@ Vagrant.configure("2") do |config|
   
   machines.each do |name,conf|
     config.vm.define "#{name}" do |machine|
-      machine.vm.network "private_network", ip: "192.168.88.#{conf["ip"]}"
+      machine.vm.network "private_network", ip: "192.168.56.#{conf["ip"]}"
       machine.vm.hostname = "#{name}.example.org"
       machine.vm.provider "virtualbox" do |vb|
         vb.cpus = "#{conf["cpus"]}"
