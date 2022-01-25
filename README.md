@@ -25,10 +25,10 @@ Nesse laboratórios, que está centralizado no arquivo [Vagrantfile][8], serão 
 
 Nome       | vCPUs | Memoria RAM | IP            | S.O.¹           | Script de Provisionamento²
 ---------- |:-----:|:-----------:|:-------------:|:---------------:| -----------------------------
-cicd       | 1     | 1536MB      | 192.168.88.10 | debian/buster64 | 
-cicd-tools | 1     | 3072MB      | 192.168.88.20 | debian/buster64 | 
-homolog    | 1     | 512MB       | 192.168.88.30 | debian/buster64 | 
-production | 1     | 512MB       | 192.168.88.40 | debian/buster64 | 
+cicd       | 1     | 1536MB      | 192.168.56.10 | debian/buster64 | 
+cicd-tools | 1     | 3072MB      | 192.168.56.20 | debian/buster64 | 
+homolog    | 1     | 512MB       | 192.168.56.30 | debian/buster64 | 
+production | 1     | 512MB       | 192.168.56.40 | debian/buster64 | 
 
 > **¹**: Esses Sistemas operacionais estão sendo utilizado no formato de Boxes, é a forma como o vagrant chama as imagens do sistema operacional utilizado.
 
