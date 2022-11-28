@@ -12,7 +12,7 @@ else
 fi
 
 tee /etc/docker/daemon.json <<EOF > /dev/null 2>&1  && echo "[OK] Insecure Docker registries added"
-{"insecure-registries": ["192.168.56.20:8082", "192.168.56.20:8083"]}
+{"insecure-registries": ["192.168.88.20:8082", "192.168.88.20:8083"]}
 EOF
 
 systemctl enable docker > /dev/null 2>&1  && echo "[OK] Docker enabled"
