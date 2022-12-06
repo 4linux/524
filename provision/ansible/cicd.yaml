@@ -89,7 +89,7 @@
         update_cache: yes
       vars:
         packages:
-        - kubectl=1.25.4
+        - kubectl=1.25.4-00
 
     - name: /var/lib/jenkins/.kube
       file:
