@@ -95,5 +95,7 @@
       file:
         path: /var/lib/jenkins/.kube
         state: directory
+        owner: jenkins
+        group: jenkins
 
 
