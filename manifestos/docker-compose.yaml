@@ -1,0 +1,32 @@
+version: '2'
+
+services:
+  web:
+    container_name: simplePythonFlask
+    image: simple-python-flask
+    ports:
+      - 5000:5000
+    depends_on:
+      - 'mariadb'
+
+  web_initiate_db:
+    container_name: simple-python-flask_init_db
+    image: simple-python-flask
+    entrypoint: ["python3","create_db.py"]
+    depends_on:
+    - 'mariadb'
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb:latest
+    ports:
+      - 3306:3306
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "qwe123qwe"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+
+volumes:
+  mariadb_data:
