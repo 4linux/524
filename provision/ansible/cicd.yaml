@@ -12,12 +12,18 @@
         - 192.168.88.10 cicd.4labs.example cicd
         - 192.168.88.20	cicd-tools.4labs.example cicd-tools 
         - 192.168.88.30 k3s.4labs.example k3s
+        - 192.168.88.40 gitlab-ci.4labs.example gitlab-ci
 
     - name: Adiciona usuario suporte
       user:
         name: suporte
         shell: /bin/bash
         password : $1$QbUARykG$p2nthVG8AkDvabKPHwboa1
+
+    - name: Adiciona usuario jenkins
+      user:
+        name: jenkins
+        shell: /bin/bash
 
     - name: Instala pacotes que permitem que o apt seja usado sobre HTTPS
       apt:
@@ -56,6 +62,7 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
+        - docker-compose
 
     - name: Reinicia o Docker
       service:

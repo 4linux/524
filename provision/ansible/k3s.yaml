@@ -12,6 +12,8 @@
         - 192.168.88.10 cicd.4labs.example cicd
         - 192.168.88.20	cicd-tools.4labs.example cicd-tools 
         - 192.168.88.30 k3s.4labs.example k3s
+        - 192.168.88.40 gitlab-ci.4labs.example gitlab-ci
+        
     - name: Instala pacotes que permitem que o apt seja usado sobre HTTPS
       apt:
         name: "{{ packages }}"
@@ -77,8 +79,23 @@
       command: sh /root/k3s.sh
 
     - name: Configurando add-on de rede 
-      command: kubectl apply -f https://docs.projectcalico.org/manifests/calico-typha.yaml
+      command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico-typha.yaml
 
+    - name: Criando o arquivo k3s.sh
+      copy:
+        src: files/jenkins-k8s.yaml
+        dest: /root/
+        owner: root
+        group: root
+        mode: '644'
 
+    - name: Criando a conta de servico para o Jenkins
+      command: kubectl apply -f /root/jenkins-k8s.yaml
 
+    - name: Extraindo o token criado para o Jenkins
+      shell: kubectl get secret jenkins-sa-token -o jsonpath={.data.token} -n jenkins-runner
+      register: token
 
+    - copy:
+        content: '{{ token.stdout | b64decode }}'
+        dest: "/root/jenkins-token.txt"

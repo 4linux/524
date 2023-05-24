@@ -71,23 +71,3 @@
         owner: root
         group: root
         mode: '0644'
-
-    - name: Criando conatainer do Nexus
-      docker_container:
-        name: nexus
-        state: started
-        image: "sonatype/nexus3"
-        pull: true
-        ports:
-          - "8081:8081"
-          - "8082:8082"
-          - "8083:8083"
-
-    - name: Criando conatainer do sonarqube
-      docker_container:
-        name: sonarqube
-        state: started
-        image: "sonarqube:lts"
-        pull: true
-        ports:
-          - "9000:9000"
