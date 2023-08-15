@@ -52,12 +52,6 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
-        
-    - name: Reinicia o Docker
-      service:
-        name: docker
-        daemon_reload: yes
-        state: restarted
 
     - name: Criando o arquivo daemon.json
       copy:
@@ -66,6 +60,12 @@
         owner: root
         group: root
         mode: '0644'
+
+    - name: Reinicia o Docker
+      service:
+        name: docker
+        daemon_reload: yes
+        state: restarted
 
     - name: Criando o arquivo k3s.sh
       copy:

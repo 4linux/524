@@ -10,32 +10,29 @@ metadata:
   namespace: jenkins-runner
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: jenkins
-  namespace: jenkins-runner
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["create","delete","get","list","patch","update","watch"]
-- apiGroups: [""]
-  resources: ["pods/exec"]
-  verbs: ["create","delete","get","list","patch","update","watch"]
-- apiGroups: [""]
-  resources: ["pods/log"]
-  verbs: ["get","list","watch"]
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get"]
+- apiGroups:
+  - ""
+  resources: ["*"]
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: jenkins-role-binding
-  namespace: jenkins-runner
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: jenkins
 subjects:
 - kind: ServiceAccount
