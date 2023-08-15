@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  namespace: homolog
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: homolog.192.168.88.30.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name:  web
+                port:
+                  number: 5000

@@ -8,6 +8,7 @@ metadata:
   labels:
     io.kompose.service: mariadb
   name: mariadb
+  namespace: homolog
 spec:
   replicas: 1
   selector:

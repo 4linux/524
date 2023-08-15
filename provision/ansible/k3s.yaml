@@ -99,3 +99,44 @@
     - copy:
         content: '{{ token.stdout | b64decode }}'
         dest: "/root/jenkins-token.txt"
+
+    - name: Criando o arquivo registries.yaml
+      copy:
+        src: files/registries.yaml
+        dest: /etc/rancher/k3s/
+        owner: root
+        group: root
+        mode: '644'
+
+    - name: Restart k3s
+      command: systemctl restart k3s
+
+    - name: Cria ingress nginx
+      command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.2/deploy/static/provider/cloud/deploy.yaml
+
+    - name: Copia Config Nginx
+      copy:
+        src: files/ingress-nginx.yaml
+        dest: /root/
+        owner: root
+        group: root
+        mode: '644'
+
+    - name: Criando SVC nginx
+      command: kubectl apply -f /root/ingress-nginx.yaml
+
+
+    - name: Cria diretorio do homolog
+      ansible.builtin.file:
+        path: /root/homolog
+        state: directory
+        mode: '0755'
+
+
+    - name: Copia Config Nginx
+      copy:
+        src: manifestos/homolog
+        dest: /root/
+        owner: root
+        group: root
+        mode: '644'
