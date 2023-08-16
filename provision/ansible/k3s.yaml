@@ -125,15 +125,13 @@
     - name: Criando SVC nginx
       command: kubectl apply -f /root/ingress-nginx.yaml
 
-
     - name: Cria diretorio do homolog
       ansible.builtin.file:
         path: /root/homolog
         state: directory
         mode: '0755'
 
-
-    - name: Copia Config Nginx
+    - name: Copia Config Homolog
       copy:
         src: manifestos/homolog
         dest: /root/
