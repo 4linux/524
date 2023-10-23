@@ -93,6 +93,7 @@ services:
     - K3S_TOKEN=12345
 
   sonarqube:
+    user: root
     image: sonarqube:9.6.1-community
     volumes:
     - ./sonarqube/sonarqube_conf:/opt/sonarqube/conf
@@ -105,6 +106,7 @@ services:
       - gitea
 
   nexus:
+    user: root
     image: sonatype/nexus3
     volumes:
       - ./nexus:/nexus-data
