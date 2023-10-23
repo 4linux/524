@@ -1,0 +1,52 @@
+---
+
+- hosts: all
+  become: yes
+  become_method: sudo
+  handlers:
+  - name: restart sshd
+    service: name=sshd state=restarted
+    
+- name: "Configurando DNS"
+  template:
+    src: "resolv.conf.j2"
+    dest: "/etc/resolv.conf"
+    mode: "0644"
+  become: true
+
+- name: Atualizando a lista de pacotes
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Installando vim e chrony
+  ansible.builtin.apt:
+    pkg:
+    - chrony
+    - gnupg2
+    - pass
+    - vim
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Installando vim e chrony
+  ansible.builtin.dnf:
+    name:
+      - epel-release
+      - vim
+      - chrony
+    state: latest
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Put SELinux in permissive mode, logging actions that would be blocked.
+  ansible.posix.selinux:
+    policy: targeted
+    state: permissive
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Allow SSH with Password
+  - lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^PasswordAuthentication'
+      line: 'PasswordAuthentication yes'
+    notify: restart sshd
+    tags: Edit_sshd_config

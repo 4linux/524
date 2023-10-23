@@ -33,16 +33,98 @@
         - gnupg-agent
         - software-properties-common
         - snapd
-        - git
-        - vim
-        - python3-docker
+        - gitversion: "3"
 
-    - name: Adiciona uma chave de assinatura apt para o Docker
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+networks:
+  gitea:
+    external: false
 
-    - name: Adiciona repositorio apt para versao estavel
+services:
+  server:
+    container_name: 'gitea-server'
+    image: gitea/gitea:latest
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+    networks:
+      - gitea
+    volumes:
+      - ./gitea:/data
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+      - "222:22"
+  jenkins-ci-server:
+    user: root
+    container_name: 'jenkins-ci-server'
+    image: jenkins/jenkins:lts
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+    links:
+      - "server:gitea"
+      - "k3s:k3s"
+    networks:
+      - gitea
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /usr/bin/docker:/usr/bin/docker
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+  k3s:
+    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    command: server --disable=traefik
+    tmpfs:
+    - /run
+    - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    privileged: true
+    restart: always
+    networks:
+      - gitea
+    environment:
+    - K3S_TOKEN=12345
+    - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+    - K3S_KUBECONFIG_MODE=666
+    volumes:
+    - ./k3s-server:/var/lib/rancher/k3s
+    # This is just so that we get the kubeconfig file out
+    - .:/output
+    - /var/run/docker.sock:/var/run/docker.sock:rw
+    - /usr/bin/docker:/usr/bin/docker
+    ports:
+    - 6443:6443  # Kubernetes API Server
+    - 80:80      # Ingress controller port 80
+    - 443:443    # Ingress controller port 443
+
+  agent:
+    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    tmpfs:
+    - /run
+    - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    privileged: true
+    networks:
+      - gitea
+    restart: always
+    environment:
+    - K3S_URL=https://k3s:6443
+    - K3S_TOKEN=12345
+
       apt_repository:
         repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
         state: present
@@ -160,13 +242,6 @@
           - "8083:8083"
         volumes:
         - /nexus:/nexus-data
-
-    - name: Cria diretorio do nexus
-      ansible.builtin.file:
-        path: /sonarqube
-        state: directory
-        mode: '0755'
-
 
     - name: Criando conatainer do sonarqube
       docker_container:
