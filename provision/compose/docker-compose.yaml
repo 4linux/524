@@ -31,6 +31,8 @@ services:
     links:
       - "server:gitea"
       - "k3s:k3s"
+      - "sonarqube:sonarqube"
+      - "nexus:nexus"
     networks:
       - gitea
     volumes:
@@ -89,3 +91,26 @@ services:
     environment:
     - K3S_URL=https://k3s:6443
     - K3S_TOKEN=12345
+
+  sonarqube:
+    image: sonarqube:9.6.1-community
+    volumes:
+    - /sonarqube/sonarqube_conf:/opt/sonarqube/conf
+    - /sonarqube/sonarqube_extensions:/opt/sonarqube/extensions
+    - /sonarqube/sonarqube_logs:/opt/sonarqube/logs
+    - /sonarqube/sonarqube_data:/opt/sonarqube/data
+    ports:
+      - "9000:9000"
+    networks:
+      - gitea
+
+  nexus:
+    image: sonatype/nexus3
+    volumes:
+      - /nexus:/nexus-data
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+    networks:
+      - gitea
