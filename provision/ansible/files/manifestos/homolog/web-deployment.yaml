@@ -2,12 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose convert
-    kompose.version: 1.26.1 (a9d05d509)
-  creationTimestamp: null
   labels:
     io.kompose.service: web
   name: web
+  namespace: homolog
 spec:
   replicas: 1
   selector:
@@ -16,16 +14,17 @@ spec:
   strategy: {}
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert
-        kompose.version: 1.26.1 (a9d05d509)
       creationTimestamp: null
       labels:
         io.kompose.service: web
     spec:
       containers:
-        - image: simple-python-flask
+        - image: 192.168.88.20:8082/course_catalog:0.27
           name: simplepythonflask
+          lifecycle:
+            postStart:
+              exec:
+                command: ["python3", "create_db.py"]
           ports:
             - containerPort: 5000
           resources: {}

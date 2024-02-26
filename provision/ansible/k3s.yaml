@@ -12,6 +12,8 @@
         - 192.168.88.10 cicd.4labs.example cicd
         - 192.168.88.20	cicd-tools.4labs.example cicd-tools 
         - 192.168.88.30 k3s.4labs.example k3s
+        - 192.168.88.40 gitlab-ci.4labs.example gitlab-ci
+        
     - name: Instala pacotes que permitem que o apt seja usado sobre HTTPS
       apt:
         name: "{{ packages }}"
@@ -50,12 +52,6 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
-        
-    - name: Reinicia o Docker
-      service:
-        name: docker
-        daemon_reload: yes
-        state: restarted
 
     - name: Criando o arquivo daemon.json
       copy:
@@ -64,6 +60,12 @@
         owner: root
         group: root
         mode: '0644'
+
+    - name: Reinicia o Docker
+      service:
+        name: docker
+        daemon_reload: yes
+        state: restarted
 
     - name: Criando o arquivo k3s.sh
       copy:
@@ -77,8 +79,62 @@
       command: sh /root/k3s.sh
 
     - name: Configurando add-on de rede 
-      command: kubectl apply -f https://docs.projectcalico.org/manifests/calico-typha.yaml
+      command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico-typha.yaml
 
+    - name: Criando o arquivo k3s.sh
+      copy:
+        src: files/jenkins-k8s.yaml
+        dest: /root/
+        owner: root
+        group: root
+        mode: '644'
 
+    - name: Criando a conta de servico para o Jenkins
+      command: kubectl apply -f /root/jenkins-k8s.yaml
 
+    - name: Extraindo o token criado para o Jenkins
+      shell: kubectl get secret jenkins-sa-token -o jsonpath={.data.token} -n jenkins-runner
+      register: token
 
+    - copy:
+        content: '{{ token.stdout | b64decode }}'
+        dest: "/root/jenkins-token.txt"
+
+    - name: Criando o arquivo registries.yaml
+      copy:
+        src: files/registries.yaml
+        dest: /etc/rancher/k3s/
+        owner: root
+        group: root
+        mode: '644'
+
+    - name: Restart k3s
+      command: systemctl restart k3s
+
+    - name: Cria ingress nginx
+      command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.2/deploy/static/provider/cloud/deploy.yaml
+
+    - name: Copia Config Nginx
+      copy:
+        src: files/ingress-nginx.yaml
+        dest: /root/
+        owner: root
+        group: root
+        mode: '644'
+
+    - name: Criando SVC nginx
+      command: kubectl apply -f /root/ingress-nginx.yaml
+
+    - name: Cria diretorio do homolog
+      ansible.builtin.file:
+        path: /root/homolog
+        state: directory
+        mode: '0755'
+
+    - name: Copia Config Homolog
+      copy:
+        src: manifestos/homolog
+        dest: /root/
+        owner: root
+        group: root
+        mode: '644'

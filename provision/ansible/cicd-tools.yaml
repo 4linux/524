@@ -12,6 +12,7 @@
         - 192.168.88.10 cicd.4labs.example cicd
         - 192.168.88.20	cicd-tools.4labs.example cicd-tools 
         - 192.168.88.30 k3s.4labs.example k3s
+        - 192.168.88.40 gitlab-ci.4labs.example gitlab-ci
 
     - name: Adiciona usuario suporte
       user:
@@ -57,11 +58,23 @@
         - docker-ce-cli
         - containerd.io
 
-    - name: Reinicia o Docker
-      service:
-        name: docker
-        daemon_reload: yes
-        state: restarted
+    - name: create .bash.rc
+      copy:
+        src: files/.bashrc
+        dest: /root
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: set max_map_count
+      sysctl:
+        name: vm.max_map_count
+        value: "524288"
+
+    - name: set file-max
+      sysctl:
+        name:  fs.file-max
+        value: "131072"
 
     - name: Criando o arquivo daemon.json
       copy:
@@ -70,6 +83,70 @@
         owner: root
         group: root
         mode: '0644'
+
+    - name: Reinicia o Docker
+      service:
+        name: docker
+        daemon_reload: yes
+        state: restarted
+
+    - name: set swap_space variable
+      set_fact:
+        swap_space: 1G
+
+    - name: set swap_file variable
+      set_fact:
+        swap_file: /{{ swap_space }}.swap
+
+    - name: check if swap file exists
+      stat:
+        path: "{{ swap_file }}"
+      register: swap_file_check
+
+    - name: create swap file
+      command: fallocate -l {{ swap_space }} {{ swap_file }}
+      when: not swap_file_check.stat.exists
+
+    - name: Create swap space
+      command: dd if=/dev/zero of=/extraswap bs=1M count=1024
+      when: not swap_file_check.stat.exists
+
+    - name: set permissions on swap file
+      file:
+        path: "{{ swap_file }}"
+        mode: 0600
+
+    - name: format swap file
+      command: mkswap {{ swap_file }}
+      when: not swap_file_check.stat.exists
+
+    - name: add to fstab
+      lineinfile:
+        dest: /etc/fstab
+        regexp: "{{ swap_file }}"
+        line: "{{ swap_file }} none swap sw 0 0"
+
+    - name: turn on swap
+      command: swapon -a
+
+    - name: set swapiness
+      sysctl:
+        name: vm.swappiness
+        value: "1"
+
+    - name: Cria diretorio do nexus
+      ansible.builtin.file:
+        path: /nexus
+        state: directory
+        mode: '0755'
+
+    - name: Permissao diretorio nexus
+      ansible.builtin.file:
+        path: /nexus
+        state: directory
+        recurse: yes
+        owner: 200
+        group: 200
 
     - name: Criando conatainer do Nexus
       docker_container:
@@ -81,12 +158,19 @@
           - "8081:8081"
           - "8082:8082"
           - "8083:8083"
+        volumes:
+        - /nexus:/nexus-data
 
     - name: Criando conatainer do sonarqube
       docker_container:
         name: sonarqube
         state: started
-        image: "sonarqube:lts"
+        image: "sonarqube:9.6.1-community"
         pull: true
         ports:
           - "9000:9000"
+        volumes:
+        - /sonarqube/sonarqube_conf:/opt/sonarqube/conf
+        - /sonarqube/sonarqube_extensions:/opt/sonarqube/extensions
+        - /sonarqube/sonarqube_logs:/opt/sonarqube/logs
+        - /sonarqube/sonarqube_data:/opt/sonarqube/data

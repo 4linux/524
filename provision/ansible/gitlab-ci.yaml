@@ -20,11 +20,6 @@
         shell: /bin/bash
         password : $1$QbUARykG$p2nthVG8AkDvabKPHwboa1
 
-    - name: Adiciona usuario jenkins
-      user:
-        name: jenkins
-        shell: /bin/bash
-
     - name: Instala pacotes que permitem que o apt seja usado sobre HTTPS
       apt:
         name: "{{ packages }}"
@@ -62,8 +57,7 @@
         - docker-ce
         - docker-ce-cli
         - containerd.io
-        - docker-compose
-     
+
     - name: Criando o arquivo daemon.json
       copy:
         src: files/daemon.json
@@ -71,38 +65,11 @@
         owner: root
         group: root
         mode: '0644'
-
+        
     - name: Reinicia o Docker
       service:
         name: docker
         daemon_reload: yes
         state: restarted
-
-    - name: Adiciona uma chave de assinatura apt para o Kubernetes
-      apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        state: present
-
-    - name: Adiciona repositorio apt para Kubernetes
-      apt_repository:
-        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-        state: present
-        filename: kubernetes.list
-
-    - name: Instala os pacotes do Kubernetes
-      apt:
-        name: "{{ packages }}"
-        state: present
-        update_cache: yes
-      vars:
-        packages:
-        - kubectl=1.25.4-00
-
-    - name: /var/lib/jenkins/.kube
-      file:
-        path: /var/lib/jenkins/.kube
-        state: directory
-        owner: jenkins
-        group: jenkins
 
 
