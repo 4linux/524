@@ -1,4 +1,4 @@
-Laboratório - 524 - Integração e Entrega Continua com Git, Jenkins, Nexus e SonarQuebe
+Laboratório - 524 - CI/CD: Integração e entrega continua com Jenkins, Nexus, Sonarqube, Gitlab-ci e Github actions - LC
 =============================
 
 ### Deploy no Kubernetes
