@@ -28,10 +28,10 @@ Nesse laboratórios, que está centralizado no arquivo [Vagrantfile][8], serão 
 
 Nome       | vCPUs | Memoria RAM | IP            | S.O.¹           | Script de Provisionamento²
 ---------- |:-----:|:-----------:|:-------------:|:---------------:| -----------------------------
-cicd       | 1     | 1536MB      | 192.168.56.10 | ubuntu/focal64 | 
-cicd-tools | 1     | 3072MB      | 192.168.56.20 | dubuntu/focal64 | 
-k3s    | 1     | 2048MB       | 192.168.56.30 | ubuntu/focal64 | 
-gitlab-ci | 1 | 3072 | 192.168.56.40 | ubuntu/focal64
+cicd       | 1     | 1536MB      | 192.168.56.10 | ubuntu/focal64 |  provision/ansible/cicd.yaml |
+cicd-tools | 1     | 3072MB      | 192.168.56.20 | dubuntu/focal64 | provision/ansible/cicd-tools |
+k3s    | 1     | 2048MB       | 192.168.56.30 | ubuntu/focal64 | provision/ansible/k3s.yaml |
+gitlab-ci | 1 | 3072 | 192.168.56.40 | ubuntu/focal64 | provision/ansible/gitlab-ci.yaml |
 
 > **¹**: Esses Sistemas operacionais estão sendo utilizado no formato de Boxes, é a forma como o vagrant chama as imagens do sistema operacional utilizado.
 
