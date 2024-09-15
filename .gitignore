@@ -1,1 +1,5 @@
 .vagrant/
+.vscode
+*.log
+**.log**
+kubectl
