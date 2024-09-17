@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  jenkins-ci-server:
+    user: root
+    container_name: 'jenkins-ci-server'
+    image: jenkins/jenkins:lts
+    environment:
+      # - JAVA_OPTS=-Djenkins.install.runSetupWizard=true -Duser.timezone=America/Sao_Paulo -Djava.util.logging.config.file=/var/jenkins_home/log.properties -Dfile.encoding=UTF-8
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+    networks:
+      - devops
+    volumes:
+      - ./jenkins_home:/var/jenkins_home
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /usr/bin/docker:/usr/bin/docker
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+
+volumes:
+  jenkins_home:
+
+networks:
+  devops:
+    external: true

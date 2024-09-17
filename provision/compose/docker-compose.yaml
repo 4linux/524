@@ -1,9 +1,5 @@
 version: "3"
 
-networks:
-  gitea:
-    external: false
-
 services:
   server:
     container_name: 'gitea-server'
@@ -13,28 +9,24 @@ services:
       - USER_GID=1000
     restart: always
     networks:
-      - gitea
+      - devops
     volumes:
       - ./gitea:/data
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "3000:3000"
-      - "222:22"
+      - "2222:22"
+
   jenkins-ci-server:
-    user: root
     container_name: 'jenkins-ci-server'
     image: jenkins/jenkins:lts
     environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Duser.timezone=America/Sao_Paulo -Djava.util.logging.config.file=/var/jenkins_home/log.properties -Dfile.encoding=UTF-8
       - USER_UID=1000
       - USER_GID=1000
     restart: always
-    links:
-      - "server:gitea"
-      - "k3s:k3s"
-      - "sonarqube:sonarqube"
-      - "nexus:nexus"
     networks:
-      - gitea
+      - devops
     volumes:
       - ./jenkins_home:/var/jenkins_home
       - /etc/timezone:/etc/timezone:ro
@@ -44,12 +36,13 @@ services:
     ports:
       - "8080:8080"
       - "50000:50000"
+
   k3s:
     image: "rancher/k3s:${K3S_VERSION:-latest}"
     command: server --disable=traefik
     tmpfs:
-    - /run
-    - /var/run
+      - /run
+      - /var/run
     ulimits:
       nproc: 65535
       nofile:
@@ -58,27 +51,26 @@ services:
     privileged: true
     restart: always
     networks:
-      - gitea
+      - devops
     environment:
-    - K3S_TOKEN=12345
-    - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
-    - K3S_KUBECONFIG_MODE=666
+      - K3S_TOKEN=12345
+      - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+      - K3S_KUBECONFIG_MODE=666
     volumes:
-    - ./k3s-server:/var/lib/rancher/k3s
-    # This is just so that we get the kubeconfig file out
-    - .:/output
-    - /var/run/docker.sock:/var/run/docker.sock:rw
-    - /usr/bin/docker:/usr/bin/docker
+      - ./k3s-server:/var/lib/rancher/k3s
+      - .:/output
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /usr/bin/docker:/usr/bin/docker
     ports:
-    - 6443:6443  # Kubernetes API Server
-    - 80:80      # Ingress controller port 80
-    - 443:443    # Ingress controller port 443
+      - 6443:6443
+      - 80:80
+      - 443:443
 
   agent:
     image: "rancher/k3s:${K3S_VERSION:-latest}"
     tmpfs:
-    - /run
-    - /var/run
+      - /run
+      - /var/run
     ulimits:
       nproc: 65535
       nofile:
@@ -86,27 +78,25 @@ services:
         hard: 65535
     privileged: true
     networks:
-      - gitea
+      - devops
     restart: always
     environment:
-    - K3S_URL=https://k3s:6443
-    - K3S_TOKEN=12345
+      - K3S_URL=https://k3s:6443
+      - K3S_TOKEN=12345
 
   sonarqube:
-    user: root
     image: sonarqube:9.6.1-community
     volumes:
-    - ./sonarqube/sonarqube_conf:/opt/sonarqube/conf
-    - ./sonarqube/sonarqube_extensions:/opt/sonarqube/extensions
-    - ./sonarqube/sonarqube_logs:/opt/sonarqube/logs
-    - ./sonarqube/sonarqube_data:/opt/sonarqube/data
+      - ./sonarqube/sonarqube_conf:/opt/sonarqube/conf
+      - ./sonarqube/sonarqube_extensions:/opt/sonarqube/extensions
+      - ./sonarqube/sonarqube_logs:/opt/sonarqube/logs
+      - ./sonarqube/sonarqube_data:/opt/sonarqube/data
     ports:
       - "9000:9000"
     networks:
-      - gitea
+      - devops
 
   nexus:
-    user: root
     image: sonatype/nexus3
     volumes:
       - ./nexus:/nexus-data
@@ -115,4 +105,8 @@ services:
       - "8082:8082"
       - "8083:8083"
     networks:
-      - gitea
+      - devops
+
+networks:
+  devops:
+    external: true

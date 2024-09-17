@@ -1,0 +1,57 @@
+version: "3"
+
+services:
+
+  k3s:
+    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    command: server --disable=traefik
+    tmpfs:
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    privileged: true
+    restart: always
+    networks:
+      - devops
+    environment:
+      - K3S_TOKEN=12345
+      - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+      - K3S_KUBECONFIG_MODE=666
+    volumes:
+      - ./k3s-server:/var/lib/rancher/k3s
+      - .:/output
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /usr/bin/docker:/usr/bin/docker
+    ports:
+      - 6443:6443
+      - 80:80
+      - 443:443
+
+  agent:
+    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    tmpfs:
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    privileged: true
+    networks:
+      - devops
+    restart: always
+    environment:
+      - K3S_URL=https://k3s:6443
+      - K3S_TOKEN=12345
+
+volumes:
+  k3s-server: {}
+
+networks:
+  devops: 
+    external: true

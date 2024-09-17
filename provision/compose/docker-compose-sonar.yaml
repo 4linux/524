@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  sonarqube:
+    image: sonarqube:9.6.1-community
+    volumes:
+      - ./sonarqube/sonarqube_conf:/opt/sonarqube/conf
+      - ./sonarqube/sonarqube_extensions:/opt/sonarqube/extensions
+      - ./sonarqube/sonarqube_logs:/opt/sonarqube/logs
+      - ./sonarqube/sonarqube_data:/opt/sonarqube/data
+    ports:
+      - "9000:9000"
+    networks:
+      - devops
+
+
+networks:
+  devops:
+    external: true
+
+volumes:
+  sonarqube: {}
