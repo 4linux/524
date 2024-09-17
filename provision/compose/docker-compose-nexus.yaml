@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  nexus:
+    image: sonatype/nexus3
+    volumes:
+      - ./nexus:/nexus-data
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+    networks:
+      - devops
+
+networks:
+  devops:
+    external: true
+
+volumes:
+  nexus: {}
