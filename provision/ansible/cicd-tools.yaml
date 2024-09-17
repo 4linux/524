@@ -3,6 +3,9 @@
   become: yes
   become_user: root
   become_method: sudo
+  vars:
+    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDbC7fGQkGTjXERSAwLq7co5QXvahoXdG93m/Zx/+W1v+eme1ZohTCyi41MkcAJDr2KHSibwo6PE7WWjgYFAsZg/PNE6igI0D5VzC63T48tsK6ffxGFYy3rl0B/VyvHdfqe/vcw44zn6HRjF2q01DXV2NeSBZuJL+diclAcB+2jhrjha9iHWxxkJuxwFl76bAfhVdtNE6yC0It+aUtJLPT1ppcviGKpIyN1w6pGvWxk1pV+Pf6CdqU1FK05FeSPK+f34bSgIOin/DCNN6oBFgX2V5H/+Gf290bmlT9YGVSNZ0Y/HCK3Cetl3A+1j4YtbyANA3ju5mWeKeG8svzfphVRuOlKtwL+pVSrcnJuLIJqf4Nsq3PBAaPt9xzHk5vkmVfaMftQU0OXrgYhP2455SuuhpJe4LG3uyncRAXCK1AX7OoDI5jY6C4pZM00Vv+FOu5BYZLn28vr73B/rHBMzjnOCiouLbrYiCSL9VGtLcPTx4haoTWbm7fZSakyUhITI6M= alissonoliveira@ALISSON"
+
   tasks:
     - name: Garantindo /etc/hosts
       lineinfile:
@@ -19,6 +22,26 @@
         name: suporte
         shell: /bin/bash
         password : $1$QbUARykG$p2nthVG8AkDvabKPHwboa1
+
+    - name: Criar usuário Devops
+      user:
+        name: "devops"
+        shell: /bin/bash
+        home: "/home/devops"
+        state: present
+        createhome: yes
+
+    - name: Garantir que o usuário devops pode usar sudo sem senha
+      lineinfile:
+        path: /etc/sudoers
+        line: 'devops ALL=(ALL) NOPASSWD:ALL'
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: Adicionar chave pública ao arquivo authorized_keys
+      authorized_key:
+        user: devops
+        state: present
+        key: "{{ ssh_public_key }}"
 
     - name: Instala pacotes que permitem que o apt seja usado sobre HTTPS
       apt:
@@ -37,26 +60,15 @@
         - vim
         - python3-docker
 
-    - name: Adiciona uma chave de assinatura apt para o Docker
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+    - name: Faz o download do script para instalação do Docker
+      get_url:
+        url: https://get.docker.com/
+        dest: /tmp/get_docker.sh
+        mode: '0755'
 
-    - name: Adiciona repositorio apt para versao estavel
-      apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
-        state: present
-
-    - name: Instala o Docker e suas dependencias
-      apt:
-        name: "{{ packages }}"
-        state: present
-        update_cache: yes
-      vars:
-        packages:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
+    - name: Executa o script para instalação do Docker
+      shell: "sh /tmp/get_docker.sh"
+      
 
     - name: create .bash.rc
       copy:
