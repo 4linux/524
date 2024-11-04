@@ -78,25 +78,34 @@
         daemon_reload: yes
         state: restarted
 
-    - name: Adiciona uma chave de assinatura apt para o Kubernetes
-      apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        state: present
+    - name: Criar diretório para chave GPG
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
 
-    - name: Adiciona repositorio apt para Kubernetes
-      apt_repository:
-        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-        state: present
-        filename: kubernetes.list
+    - name: Baixar chave GPG do repositório do Kubernetes
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+        dest: /tmp/release.key
+        mode: '0644'
 
-    - name: Instala os pacotes do Kubernetes
+    - name: Converter chave GPG para formato adequado e mover para keyrings
+      ansible.builtin.command: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/release.key
+      args:
+        removes: /tmp/release.key
+
+    - name: Adicionar repositório do Kubernetes
+      ansible.builtin.command: |
+        echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /" | \
+        tee /etc/apt/sources.list.d/kubernetes.list
+      args:
+        creates: /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Atualizar cache do apt
       apt:
-        name: "{{ packages }}"
-        state: present
         update_cache: yes
-      vars:
-        packages:
-        - kubectl=1.25.4-00
+
 
     - name: /var/lib/jenkins/.kube
       file:
