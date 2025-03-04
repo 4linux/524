@@ -98,7 +98,7 @@
         echo "Movendo kubectl para /usr/local/bin"
         mv kubectl /usr/local/bin/
       args:
-        chdir: /tmp  # Define o diretório de trabalho para evitar problemas de caminho
+        chdir: /tmp  
 
     - name: Verificar se kubectl está instalado
       command: kubectl version --client

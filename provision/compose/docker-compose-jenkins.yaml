@@ -1,9 +1,9 @@
 version: "3"
 
 services:
-  jenkins-ci-server:
+  jenkins:
     user: root
-    container_name: 'jenkins-ci-server'
+    container_name: jenkins
     image: jenkins/jenkins:lts
     environment:
       # - JAVA_OPTS=-Djenkins.install.runSetupWizard=true -Duser.timezone=America/Sao_Paulo -Djava.util.logging.config.file=/var/jenkins_home/log.properties -Dfile.encoding=UTF-8

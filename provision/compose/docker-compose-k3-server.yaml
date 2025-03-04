@@ -22,8 +22,8 @@ services:
       - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
       - K3S_KUBECONFIG_MODE=666
     volumes:
-      - ./k3s-server:/var/lib/rancher/k3s
-      - .:/output
+      - /k3s-server:/var/lib/rancher/k3s
+      - /k3s-server:/output
       - /var/run/docker.sock:/var/run/docker.sock:rw
       - /usr/bin/docker:/usr/bin/docker
     ports:

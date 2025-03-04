@@ -1,8 +1,8 @@
 version: "3"
 
 services:
-  server:
-    container_name: 'gitea-server'
+  gitea:
+    container_name: gitea
     image: gitea/gitea:latest
     environment:
       - USER_UID=1000
