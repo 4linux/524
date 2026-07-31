@@ -78,25 +78,77 @@
         daemon_reload: yes
         state: restarted
 
-    - name: Adiciona uma chave de assinatura apt para o Kubernetes
-      apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        state: present
+    - name: set swap_space variable
+      set_fact:
+        swap_space: 1G
 
-    - name: Adiciona repositorio apt para Kubernetes
-      apt_repository:
-        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-        state: present
-        filename: kubernetes.list
+    - name: set swap_file variable
+      set_fact:
+        swap_file: /{{ swap_space }}.swap
 
-    - name: Instala os pacotes do Kubernetes
+    - name: check if swap file exists
+      stat:
+        path: "{{ swap_file }}"
+      register: swap_file_check
+
+    - name: create swap file
+      command: fallocate -l {{ swap_space }} {{ swap_file }}
+      when: not swap_file_check.stat.exists
+
+    - name: Create swap space
+      command: dd if=/dev/zero of=/extraswap bs=1M count=1024
+      when: not swap_file_check.stat.exists
+
+    - name: set permissions on swap file
+      file:
+        path: "{{ swap_file }}"
+        mode: 0600
+
+    - name: format swap file
+      command: mkswap {{ swap_file }}
+      when: not swap_file_check.stat.exists
+
+    - name: add to fstab
+      lineinfile:
+        dest: /etc/fstab
+        regexp: "{{ swap_file }}"
+        line: "{{ swap_file }} none swap sw 0 0"
+
+    - name: turn on swap
+      command: swapon -a
+
+    - name: set swapiness
+      sysctl:
+        name: vm.swappiness
+        value: "1"
+
+    - name: Criar diretório para chave GPG
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Baixar chave GPG do repositório do Kubernetes
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+        dest: /tmp/release.key
+        mode: '0644'
+
+    - name: Converter chave GPG para formato adequado e mover para keyrings
+      ansible.builtin.command: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/release.key
+      args:
+        removes: /tmp/release.key
+
+    - name: Adicionar repositório do Kubernetes
+      ansible.builtin.command: |
+        echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /" | \
+        tee /etc/apt/sources.list.d/kubernetes.list
+      args:
+        creates: /etc/apt/sources.list.d/kubernetes.list
+
+    - name: Atualizar cache do apt
       apt:
-        name: "{{ packages }}"
-        state: present
         update_cache: yes
-      vars:
-        packages:
-        - kubectl=1.25.4-00
 
     - name: /var/lib/jenkins/.kube
       file:

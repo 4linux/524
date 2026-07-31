@@ -78,8 +78,8 @@
     - name: Instalando k3s via script 
       command: sh /root/k3s.sh
 
-    - name: Configurando add-on de rede 
-      command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/master/manifests/calico-typha.yaml
+    - name: Configurando add-on de rede
+      command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/calico-typha.yaml
 
     - name: Criando o arquivo k3s.sh
       copy:
