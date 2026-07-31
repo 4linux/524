@@ -31,9 +31,11 @@ Vagrant.configure("2") do |config|
         vb.memory = conf['memory']
         vb.cpus = conf['cpus']
       end
+      k.vm.provision 'shell', inline: 'which ansible-playbook || (apt-get update -qq && apt-get install -y -qq python3-pip && pip3 install --quiet "ansible<7")'
       k.vm.provision 'ansible_local' do |ansible|
         ansible.playbook = "#{conf['provision']}"
         ansible.compatibility_mode = '2.0'
+        ansible.install_mode = 'default'
       end
     end
   end

@@ -78,6 +78,50 @@
         daemon_reload: yes
         state: restarted
 
+    - name: set swap_space variable
+      set_fact:
+        swap_space: 1G
+
+    - name: set swap_file variable
+      set_fact:
+        swap_file: /{{ swap_space }}.swap
+
+    - name: check if swap file exists
+      stat:
+        path: "{{ swap_file }}"
+      register: swap_file_check
+
+    - name: create swap file
+      command: fallocate -l {{ swap_space }} {{ swap_file }}
+      when: not swap_file_check.stat.exists
+
+    - name: Create swap space
+      command: dd if=/dev/zero of=/extraswap bs=1M count=1024
+      when: not swap_file_check.stat.exists
+
+    - name: set permissions on swap file
+      file:
+        path: "{{ swap_file }}"
+        mode: 0600
+
+    - name: format swap file
+      command: mkswap {{ swap_file }}
+      when: not swap_file_check.stat.exists
+
+    - name: add to fstab
+      lineinfile:
+        dest: /etc/fstab
+        regexp: "{{ swap_file }}"
+        line: "{{ swap_file }} none swap sw 0 0"
+
+    - name: turn on swap
+      command: swapon -a
+
+    - name: set swapiness
+      sysctl:
+        name: vm.swappiness
+        value: "1"
+
     - name: Criar diretório para chave GPG
       file:
         path: /etc/apt/keyrings
