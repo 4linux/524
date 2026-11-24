@@ -4,6 +4,10 @@
   become_user: root
   become_method: sudo
   tasks:
+    - name: Remove qualquer repositorio apt antigo do Docker, se existir
+      shell: grep -rl 'download\.docker\.com' /etc/apt/sources.list.d/ /etc/apt/sources.list 2>/dev/null | xargs -r rm -f
+      changed_when: false
+
     - name: Garantindo /etc/hosts
       lineinfile:
         path: /etc/hosts
@@ -42,20 +46,28 @@
         - vim
         - python3-docker
 
+    - name: Garante existencia do diretorio /etc/apt/keyrings
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
     - name: Adiciona uma chave de assinatura apt para o Docker
-      apt_key:
+      ansible.builtin.get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
 
     - name: Adiciona repositorio apt para versao estavel
       apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+        repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        filename: docker
         state: present
 
-    - name: Instala o Docker e suas dependencias
+    - name: Instala/atualiza o Docker e suas dependencias para a versao mais recente
       apt:
         name: "{{ packages }}"
-        state: present
+        state: latest
         update_cache: yes
       vars:
         packages:
@@ -135,7 +147,7 @@
         mode: '0644'
 
     - name: Converter chave GPG para formato adequado e mover para keyrings
-      ansible.builtin.command: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/release.key
+      ansible.builtin.command: gpg --batch --yes --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/release.key
       args:
         removes: /tmp/release.key
 
